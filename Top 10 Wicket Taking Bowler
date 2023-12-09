@@ -1,0 +1,19 @@
+/*Top 10 Wicket Taking Bowler*/
+WITH BowlerStats AS (
+    SELECT
+        Bowler AS BowlerName,
+        SUM(CASE WHEN "is_wicket" = 1 THEN 1 ELSE 0 END) AS TotalWicketsTaken,
+        SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) AS TotalBallsBowled,
+        COUNT(DISTINCT EXTRACT(YEAR FROM "date"::date)) AS SeasonsPlayed
+    FROM "IPL_Ball"
+    JOIN "ipl_matches" ON "IPL_Ball".ID = "ipl_matches".ID
+    GROUP BY Bowler
+    HAVING
+        SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) >= 500
+        AND COUNT(DISTINCT EXTRACT(YEAR FROM "date"::date)) > 0
+)
+SELECT
+    BowlerName,(TotalBallsBowled / TotalWicketsTaken) AS BowlingStrikeRate
+FROM BowlerStats
+ORDER BY BowlingStrikeRate ASC
+limit 10;
