@@ -1,4 +1,4 @@
---Top 10 Aggressive Batsman
+/*Top 10 Aggressive Batsman*/
 SELECT 
     "Batsman" AS Player_Name,
     SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) AS Balls_Faced,
