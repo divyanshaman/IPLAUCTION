@@ -1,4 +1,4 @@
---Top 10 Anchor Batsman
+/*Top 10 Anchor Batsman*/
 WITH BattingStats AS (
     SELECT
         "Batsman",
