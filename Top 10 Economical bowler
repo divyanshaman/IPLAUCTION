@@ -1,0 +1,21 @@
+/*Top 10 Economical bowler*/
+WITH BowlerStats AS (
+    SELECT
+        Bowler AS BowlerName, SUM("total_runs") AS TotalRunsConceded,
+        SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) AS TotalBallsBowled,
+        COUNT(DISTINCT EXTRACT(YEAR FROM Date::date)) AS SeasonsPlayed
+    FROM "IPL_Ball"
+    JOIN "ipl_matches" ON "IPL_Ball".ID = "ipl_matches".ID
+    WHERE "is_wicket" = 0  
+    GROUP BY Bowler
+    HAVING
+        SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) >= 500
+        AND COUNT(DISTINCT EXTRACT(YEAR FROM date::date)) > 0
+)
+SELECT
+    BowlerName, (TotalRunsConceded / (TotalBallsBowled / 6)) AS EconomyRate
+FROM
+    BowlerStats
+ORDER BY
+    EconomyRate ASC
+limit 10;
