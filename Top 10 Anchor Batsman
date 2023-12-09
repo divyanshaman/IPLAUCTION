@@ -1,0 +1,38 @@
+--Top 10 Anchor Batsman
+WITH BattingStats AS (
+    SELECT
+        "Batsman",
+        SUM("total_runs") AS TotalRuns, SUM("is_wicket") AS TotalDismissal, (SUM("total_runs") / NULLIF(SUM("is_wicket"), 0)) AS Average
+    FROM
+        "IPL_Ball"
+    GROUP BY
+        "Batsman"
+),
+SeasonsPlayed AS (
+    SELECT
+        "Batsman", COUNT(DISTINCT EXTRACT(YEAR FROM "date")) AS SeasonsPlayed
+    FROM
+        "ipl_matches" AS m
+    JOIN
+        "IPL_Ball" AS b
+    ON
+        b.id = m.id
+    GROUP BY
+        "Batsman"
+    HAVING
+        COUNT(DISTINCT EXTRACT(YEAR FROM "date")) > 2
+)
+SELECT
+    bs."Batsman“, bs.TotalRuns, bs.Average, sp.SeasonsPlayed
+FROM
+    BattingStats AS bs
+JOIN
+    SeasonsPlayed AS sp
+ON
+    bs."Batsman" = sp."Batsman"
+WHERE
+    bs.Average >= 30  -- You can adjust the average threshold as needed
+ORDER BY
+    bs.Average DESC
+limit 10;
+
