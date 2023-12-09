@@ -1,0 +1,36 @@
+/*Top 10 All Rounder*/
+WITH BowlingStats AS (
+    SELECT Bowler AS PlayerName, COUNT(*) AS BallsBowled, SUM("total_runs") AS RunsConceded,
+    COUNT(CASE WHEN "is_wicket" = 1 THEN 1 ELSE NULL END) AS WicketsTaken
+    FROM "IPL_Ball"
+    WHERE Bowler IS NOT NULL
+    GROUP BY Bowler
+    HAVING
+        COUNT(*) >= 300
+),
+BattingStats AS (
+    SELECT
+        "Batsman" AS PlayerName, SUM("total_runs") AS RunsScored, SUM("4s_6s") AS TotalFoursAndSixes,
+        COUNT(*) AS BallsFacedEstimate  -- Estimating balls faced
+    FROM "IPL_Ball"
+    WHERE "Batsman" IS NOT NULL
+    GROUP BY "Batsman"
+    HAVING
+        COUNT(*) >= 500
+),
+CombinedStats AS (
+    SELECT
+        B.PlayerName,
+        (B.RunsScored * 100.0) / NULLIF(B.BallsFacedEstimate, 0) AS BattingStrikeRate,
+        (C.WicketsTaken * 100.0) / NULLIF(C.BallsBowled, 0) AS BowlingStrikeRate
+    FROM BattingStats AS B
+    JOIN BowlingStats AS C ON B.PlayerName = C.PlayerName
+)
+SELECT
+    PlayerName,BattingStrikeRate,BowlingStrikeRate
+FROM CombinedStats
+ORDER BY
+    BattingStrikeRate DESC,
+    BowlingStrikeRate ASC
+LIMIT 10;
+
