@@ -1,0 +1,18 @@
+--Top 10 Aggressive Batsman
+SELECT 
+    "Batsman" AS Player_Name,
+    SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END) AS Balls_Faced,
+    SUM("batsman_runs") AS Total_Runs,
+    (SUM("batsman_runs") * 100.0 / SUM(CASE WHEN "extra_type" != 'wides' THEN 1 ELSE 0 END)) AS Strike_Rate
+FROM 
+    "IPL_Ball"
+WHERE 
+    extra_type != 'wides' 
+GROUP BY 
+    "Batsman"
+HAVING 
+    SUM(CASE WHEN extra_type != 'wides' THEN 1 ELSE 0 END) >= 500  
+    AND (SUM(batsman_runs) * 100.0 / SUM(CASE WHEN extra_type != 'wides' THEN 1 ELSE 0 END)) > 130  
+ORDER BY 
+    Strike_Rate DESC
+limit 10;
