@@ -1,0 +1,42 @@
+/*Top 10 Hard Hitting Batsman*/
+/*First we will create new column of 4s and 6s name 4s_6s*/
+/*insertion of column*/
+Alter “IPL_Ball”
+Add “4s_6s” int; 
+--insertion of dataset
+UPDATE IPL_Ball
+SET 4s_6s = CASE
+    WHEN batsman_runs IN (4, 6) THEN batsman_runs
+    ELSE 0
+END;
+/*after which we use this query*/
+WITH BoundaryStats AS (
+    SELECT
+        "Batsman" AS BatsmanName, SUM("total_runs") AS TotalRuns, SUM("4s_6s") AS TotalBoundaryCount,
+        (SUM("4s_6s") * 100.0) / NULLIF(SUM("total_runs"), 0) AS BoundaryPercentage
+    FROM "IPL_Ball"
+    GROUP BY "Batsman"
+    HAVING
+        SUM("total_runs") > 0  -- Exclude batsmen with no runs
+),
+SeasonCount AS (
+    SELECT
+        b."Batsman", COUNT(DISTINCT EXTRACT(YEAR FROM m."date")) AS SeasonsPlayed
+    FROM
+        "ipl_matches" AS m
+    JOIN
+        "IPL_Ball" AS b
+    ON
+        b.id = m.id
+    GROUP BY
+        b."Batsman"
+    HAVING
+        COUNT(DISTINCT EXTRACT(YEAR FROM m."date")) > 2
+)
+SELECT
+    BS.BatsmanName, BS.TotalRuns, BS.TotalBoundaryCount, BS.BoundaryPercentage, SC.SeasonsPlayed
+FROM BoundaryStats BS
+JOIN SeasonCount SC ON BS.BatsmanName = SC."Batsman"
+ORDER BY
+    BS.TotalBoundaryCount DESC
+limit 10;
